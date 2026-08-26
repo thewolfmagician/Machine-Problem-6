@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Item Management System</title>
+</head>
+<body>
+
+    <h1>Item Management System</h1>
+
+    <form id="itemForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="editIndex" value="">
+        
+        <label for="itemName">Item Name:</label>
+        <input type="text" id="itemName" required><br><br>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" min="1" required><br><br>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" step="0.01" min="0" required><br><br>
+
+        <button type="submit" id="submitBtn">Add Item</button>
+    </form>
+
+    <p id="message">Please enter the item name.</p>
+
+    <hr>
+
+    <h2>Item Records</h2>
+
+    <table border="1" id="itemTable" cellpadding="8">
+        <thead>
+            <tr>
+                <th>CTR</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tfoot>
+            <tr id="grandTotalRow" style="display: none;">
+                <td colspan="4" style="text-align: right;"><strong>Grand Total</strong></td>
+                <td colspan="2"><strong id="grandTotalValue">0</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <script>
+        let items = [];
+        let nextCtr = 10001;
+        let editingRowIndex = null;
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById('itemName');
+            const qtyInput = document.getElementById('quantity');
+            const priceInput = document.getElementById('price');
+            const message = document.getElementById('message');
+
+            const name = nameInput.value;
+            const quantity = parseInt(qtyInput.value);
+            const price = parseFloat(priceInput.value);
+
+            if (name.trim() === "") {
+                message.innerText = "Please enter the item name.";
+                return;
+            }
+
+            // Precautions / Validations
+            if (quantity <= 0) {
+                message.innerText = "Quantity must be greater than zero.";
+                return;
+            }
+
+            if (price <= 0) {
+                message.innerText = "Price must be greater than zero.";
+                return;
+            }
+
+            if (editingRowIndex === null) {
+                const assignedCtr = nextCtr++;
+                const newItem = {
+                    ctr: assignedCtr,
+                    name: name,
+                    quantity: quantity,
+                    price: price
+                };
+                items.push(newItem);
+                message.innerText = `Record ${assignedCtr} was added successfully.`;
+            } else {
+                items[editingRowIndex].name = name;
+                items[editingRowIndex].quantity = quantity;
+                items[editingRowIndex].price = price;
+                
+                const updatedCtr = items[editingRowIndex].ctr;
+                editingRowIndex = null;
+                document.getElementById('submitBtn').innerText = "Add Item";
+                message.innerText = `Record ${updatedCtr} was updated successfully.`;
+            }
+
+            nameInput.value = "";
+            qtyInput.value = "";
+            priceInput.value = "";
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.querySelector('#itemTable tbody');
+            const grandTotalRow = document.getElementById('grandTotalRow');
+            const grandTotalValue = document.getElementById('grandTotalValue');
+            
+            tbody.innerHTML = "";
+
+            if (items.length === 0) {
+                grandTotalRow.style.display = 'none';
+                return;
+            }
+
+            let grandTotal = 0;
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const totalPrice = item.quantity * item.price;
+                grandTotal += totalPrice;
+
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${item.ctr}</td>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.price}</td>
+                    <td>${totalPrice}</td>
+                    <td>
+                        <button onclick="editItem(${i})">Update</button>
+                        <button onclick="deleteItem(${i})">Delete</button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            }
+
+            grandTotalValue.innerText = Math.round(grandTotal);
+            grandTotalRow.style.display = '';
+        }
+
+        function editItem(index) {
+            const item = items[index];
+            
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('quantity').value = item.quantity;
+            document.getElementById('price').value = item.price;
+            
+            editingRowIndex = index;
+            document.getElementById('submitBtn').innerText = "Update Item";
+            document.getElementById('message').innerText = `You are updating record ${item.ctr}.`;
+        }
+
+        function deleteItem(index) {
+            const deletedCtr = items[index].ctr;
+            items.splice(index, 1);
+            renderTable();
+            document.getElementById('message').innerText = `Record ${deletedCtr} was deleted successfully.`;
+        }
+    </script>
+
+</body>
+</html>
