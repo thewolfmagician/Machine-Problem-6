@@ -20,6 +20,7 @@
         <input type="number" id="price" step="0.01" min="0" required><br><br>
 
         <button type="submit" id="submitBtn">Add Item</button>
+        <button type="button" id="cancelBtn" onclick="cancelUpdate()" style="display: none;">Cancel</button>
     </form>
 
     <p id="message">Please enter the item name.</p>
@@ -71,6 +72,7 @@
                 return;
             }
 
+            // Precautions / Validations
             if (quantity <= 0) {
                 message.innerText = "Quantity must be greater than zero.";
                 return;
@@ -99,7 +101,11 @@
                 
                 const updatedCtr = items[editingRowIndex].ctr;
                 editingRowIndex = null;
+                
+                // Reset form button and hide cancel button
                 document.getElementById('submitBtn').innerText = "Add Item";
+                document.getElementById('cancelBtn').style.display = 'none';
+                
                 message.innerText = `Record ${updatedCtr} was updated successfully.`;
             }
 
@@ -159,12 +165,28 @@
             
             editingRowIndex = index;
             document.getElementById('submitBtn').innerText = "Update Item";
+            document.getElementById('cancelBtn').style.display = 'inline-block'; // Show cancel button
             document.getElementById('message').innerText = `You are updating record ${item.ctr}.`;
+        }
+
+        function cancelUpdate() {
+            editingRowIndex = null;
+            
+            // Clear input fields
+            document.getElementById('itemName').value = "";
+            document.getElementById('quantity').value = "";
+            document.getElementById('price').value = "";
+
+            // Reset button text and hide cancel button
+            document.getElementById('submitBtn').innerText = "Add Item";
+            document.getElementById('cancelBtn').style.display = 'none';
+
+            document.getElementById('message').innerText = "Update was cancelled.";
         }
 
         function deleteItem(index) {
             const deletedCtr = items[index].ctr;
-
+            
             let newItems = [];
             let newIndex = 0;
             
@@ -178,13 +200,8 @@
             items = newItems;
 
             if (editingRowIndex === index) {
-                editingRowIndex = null;
-                document.getElementById('submitBtn').innerText = "Add Item";
-                document.getElementById('itemName').value = "";
-                document.getElementById('quantity').value = "";
-                document.getElementById('price').value = "";
+                cancelUpdate(); // Reset form if item being updated is deleted
             } else if (editingRowIndex > index) {
-
                 editingRowIndex--;
             }
 
