@@ -89,7 +89,8 @@
                     quantity: quantity,
                     price: price
                 };
-                items.push(newItem);
+                
+                items[items.length] = newItem;
                 message.innerText = `Record ${assignedCtr} was added successfully.`;
             } else {
                 items[editingRowIndex].name = name;
@@ -163,7 +164,30 @@
 
         function deleteItem(index) {
             const deletedCtr = items[index].ctr;
-            items.splice(index, 1);
+
+            let newItems = [];
+            let newIndex = 0;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (i !== index) {
+                    newItems[newIndex] = items[i];
+                    newIndex++;
+                }
+            }
+            
+            items = newItems;
+
+            if (editingRowIndex === index) {
+                editingRowIndex = null;
+                document.getElementById('submitBtn').innerText = "Add Item";
+                document.getElementById('itemName').value = "";
+                document.getElementById('quantity').value = "";
+                document.getElementById('price').value = "";
+            } else if (editingRowIndex > index) {
+
+                editingRowIndex--;
+            }
+
             renderTable();
             document.getElementById('message').innerText = `Record ${deletedCtr} was deleted successfully.`;
         }
